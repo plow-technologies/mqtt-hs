@@ -114,7 +114,7 @@ data MQTTClient = MQTTClient {
   , _pktID        :: TVar Word16
   , _cb           :: MessageCallback
   , _acks         :: TVar (Map (DispatchType,Word16) (TChan MQTTPkt))
-  , _inflight     :: TVar (Map Word16 PublishRequest)
+  , _inflight     :: TVar (Map Word16 Bool)
   , _st           :: TVar ConnState
   , _ct           :: TVar (Maybe (Async ()))
   , _outA         :: TVar (Map Topic Word16)
@@ -423,25 +423,30 @@ dispatch c@MQTTClient{..} pch pkt =
                                                     atomically $ writeTVar _st (ConnErr connr)
                                                     maybeCancelWith (MQTTException $ show connr) t
 
-        pub p@PublishRequest{_pubQoS=QoS0} = atomically (resolve p) >>= notify Nothing
+        pub p@PublishRequest{_pubQoS=QoS0} = atomically (resolve p) >>= notify ()
         pub p@PublishRequest{_pubQoS=QoS1, _pubPktID} =
-          notify (Just (PubACKPkt (PubACK _pubPktID 0 mempty))) =<< atomically (resolve p)
-        pub p@PublishRequest{_pubQoS=QoS2} = atomically $ do
-          p'@PublishRequest{..} <- resolve p
-          modifyTVar' _inflight (Map.insert _pubPktID p')
-          sendPacket c (PubRECPkt (PubREC _pubPktID 0 mempty))
+          notify (sendPacketIO c (PubACKPkt (PubACK _pubPktID 0 mempty))) =<< atomically (resolve p)
+        pub p@PublishRequest{_pubQoS=QoS2, _pubPktID} = do
+          (isInFlight, p') <- atomically $ do
+            p'@PublishRequest{..} <- resolve p
+            isInFlight <- Map.member _pubPktID <$> readTVar _inflight
+            modifyTVar' _inflight (Map.insert _pubPktID True)
+            pure (isInFlight, p')
+          let sendPUBREC = sendPacketIO c (PubRECPkt (PubREC _pubPktID 0 mempty))
+          if not isInFlight
+            then notify sendPUBREC p'
+            else sendPUBREC
 
         pubd i = do
-          mp <- atomically $ do
-            r <- Map.lookup i <$> readTVar _inflight
-            modifyTVar' _inflight (Map.delete i)
-            pure r
+          mp <- atomically $
+            Map.lookup i <$> readTVar _inflight
           case mp of
             Nothing -> sendPacketIO c (PubCOMPPkt (PubCOMP i 0x92 mempty))
-            Just p  -> notify (Just (PubCOMPPkt (PubCOMP i 0 mempty))) p
+            Just _  -> do
+              atomically $ modifyTVar' _inflight (Map.delete i)
+              sendPacketIO c (PubCOMPPkt (PubCOMP i 0 mempty))
 
-        notify rpkt p@PublishRequest{..} = do
-          atomically $ modifyTVar' _inflight (Map.delete _pubPktID)
+        notify respond p@PublishRequest{..} = do
           corrs <- readTVarIO _corr
           E.evaluate . force =<< case maybe _cb (\cd -> Map.findWithDefault _cb cd corrs) cdata of
                                    NoCallback                -> pure ()
@@ -451,9 +456,9 @@ dispatch c@MQTTClient{..} pch pkt =
                                    OrderedLowLevelCallback f -> callOrd (f c p)
 
             where
-              call a = link =<< namedAsync "notifier" (a >> respond)
+              call a = void $ namedAsync "notifier" (a >> respond)
               callOrd a = putMVar _cbM $ a >> respond
-              respond = traverse_ (sendPacketIO c) rpkt
+              respond = sendPacketIO c pkt
               cdata = foldr f Nothing _pubProps
                 where f (PropCorrelationData x) _ = Just x
                       f _ o                       = o

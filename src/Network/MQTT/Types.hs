@@ -269,7 +269,7 @@ parseProperties :: ProtocolLevel -> A.Parser [Property]
 parseProperties Protocol311 = pure mempty
 parseProperties Protocol50 = do
   len <- decodeVarInt
-  either fail pure . A.parseOnly (A.many' parseProperty) =<< A.take len
+  either fail pure . A.parseOnly (A.many' parseProperty) =<< fmap (BL.fromChunks . (:[])) (A.take len)
 
 -- | MQTT Protocol Levels
 data ProtocolLevel = Protocol311 -- ^ MQTT 3.1.1
@@ -707,7 +707,7 @@ parseSubHdr b prot p = do
   pid <- aWord16
   props <- parseProperties prot
   content <- A.take (fromIntegral hl - 2 - propLen prot props)
-  a <- subp content
+  a <- subp (BL.fromChunks [content])
   pure (pid, props, a)
 
     where subp = either fail pure . A.parseOnly p

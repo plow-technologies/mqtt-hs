@@ -7,21 +7,50 @@
 --   Please see the README on GitHub at
 --   <a>https://github.com/dustin/mqtt-hs#readme</a>
 @package net-mqtt
-@version 0.7.1.0
+@version 0.8.3.0
 
 
 -- | Topic and topic related utiilities.
 module Network.MQTT.Topic
 
 -- | An MQTT topic filter.
-type Filter = Text
+data Filter
+unFilter :: Filter -> Text
 
 -- | An MQTT topic.
-type Topic = Text
+data Topic
+unTopic :: Topic -> Text
 
 -- | match returns true iff the given pattern can be matched by the
 --   specified Topic as defined in the <a>MQTT 3.1.1 specification</a>.
 match :: Filter -> Topic -> Bool
+
+-- | mkFilter creates a filter from a text representation of a valid
+--   filter.
+mkFilter :: Text -> Maybe Filter
+
+-- | mkTopic creates a topic from a text representation of a valid filter.
+mkTopic :: Text -> Maybe Topic
+
+-- | split separates a <a>Filter</a> or <a>Topic</a> into its
+--   <a>/</a>-separated components.
+split :: Splittable a => a -> [a]
+
+-- | Convert a <a>Topic</a> to a <a>Filter</a> as all <a>Topic</a>s are
+--   valid <a>Filter</a>s
+toFilter :: Topic -> Filter
+instance Data.String.IsString Network.MQTT.Topic.Topic
+instance GHC.Classes.Eq Network.MQTT.Topic.Topic
+instance GHC.Classes.Ord Network.MQTT.Topic.Topic
+instance GHC.Show.Show Network.MQTT.Topic.Topic
+instance Data.String.IsString Network.MQTT.Topic.Filter
+instance GHC.Classes.Eq Network.MQTT.Topic.Filter
+instance GHC.Classes.Ord Network.MQTT.Topic.Filter
+instance GHC.Show.Show Network.MQTT.Topic.Filter
+instance Network.MQTT.Topic.Splittable Network.MQTT.Topic.Filter
+instance GHC.Base.Semigroup Network.MQTT.Topic.Filter
+instance Network.MQTT.Topic.Splittable Network.MQTT.Topic.Topic
+instance GHC.Base.Semigroup Network.MQTT.Topic.Topic
 
 
 -- | MQTT Types.
@@ -57,6 +86,9 @@ data QoS
 QoS0 :: QoS
 QoS1 :: QoS
 QoS2 :: QoS
+
+-- | Parse a valid QoS value from an Int.
+qosFromInt :: Int -> Maybe QoS
 data ConnectRequest
 ConnectRequest :: Maybe ByteString -> Maybe ByteString -> Maybe LastWill -> Bool -> Word16 -> ByteString -> [Property] -> ConnectRequest
 [_username] :: ConnectRequest -> Maybe ByteString
@@ -270,73 +302,73 @@ parseSubOptions :: Parser SubOptions
 class ByteSize a
 toByte :: ByteSize a => a -> Word8
 fromByte :: ByteSize a => Word8 -> a
-instance GHC.Show.Show Network.MQTT.Types.MQTTPkt
-instance GHC.Classes.Eq Network.MQTT.Types.MQTTPkt
-instance GHC.Show.Show Network.MQTT.Types.DisconnectRequest
-instance GHC.Classes.Eq Network.MQTT.Types.DisconnectRequest
-instance GHC.Enum.Enum Network.MQTT.Types.DiscoReason
-instance GHC.Enum.Bounded Network.MQTT.Types.DiscoReason
-instance GHC.Classes.Eq Network.MQTT.Types.DiscoReason
-instance GHC.Show.Show Network.MQTT.Types.DiscoReason
-instance GHC.Show.Show Network.MQTT.Types.AuthRequest
-instance GHC.Classes.Eq Network.MQTT.Types.AuthRequest
-instance GHC.Show.Show Network.MQTT.Types.UnsubscribeResponse
-instance GHC.Classes.Eq Network.MQTT.Types.UnsubscribeResponse
-instance GHC.Enum.Enum Network.MQTT.Types.UnsubStatus
-instance GHC.Enum.Bounded Network.MQTT.Types.UnsubStatus
-instance GHC.Classes.Eq Network.MQTT.Types.UnsubStatus
-instance GHC.Show.Show Network.MQTT.Types.UnsubStatus
-instance GHC.Show.Show Network.MQTT.Types.UnsubscribeRequest
-instance GHC.Classes.Eq Network.MQTT.Types.UnsubscribeRequest
-instance GHC.Show.Show Network.MQTT.Types.SubscribeResponse
-instance GHC.Classes.Eq Network.MQTT.Types.SubscribeResponse
-instance GHC.Enum.Enum Network.MQTT.Types.SubErr
-instance GHC.Enum.Bounded Network.MQTT.Types.SubErr
-instance GHC.Show.Show Network.MQTT.Types.SubErr
-instance GHC.Classes.Eq Network.MQTT.Types.SubErr
-instance GHC.Show.Show Network.MQTT.Types.PubCOMP
-instance GHC.Classes.Eq Network.MQTT.Types.PubCOMP
-instance GHC.Show.Show Network.MQTT.Types.PubREL
-instance GHC.Classes.Eq Network.MQTT.Types.PubREL
-instance GHC.Show.Show Network.MQTT.Types.PubREC
-instance GHC.Classes.Eq Network.MQTT.Types.PubREC
-instance GHC.Show.Show Network.MQTT.Types.PubACK
-instance GHC.Classes.Eq Network.MQTT.Types.PubACK
-instance GHC.Show.Show Network.MQTT.Types.SubscribeRequest
-instance GHC.Classes.Eq Network.MQTT.Types.SubscribeRequest
-instance GHC.Show.Show Network.MQTT.Types.SubOptions
-instance GHC.Classes.Eq Network.MQTT.Types.SubOptions
-instance GHC.Enum.Enum Network.MQTT.Types.RetainHandling
-instance GHC.Enum.Bounded Network.MQTT.Types.RetainHandling
-instance GHC.Show.Show Network.MQTT.Types.RetainHandling
-instance GHC.Classes.Eq Network.MQTT.Types.RetainHandling
-instance GHC.Show.Show Network.MQTT.Types.PublishRequest
-instance GHC.Classes.Eq Network.MQTT.Types.PublishRequest
-instance GHC.Show.Show Network.MQTT.Types.ConnACKFlags
-instance GHC.Classes.Eq Network.MQTT.Types.ConnACKFlags
-instance GHC.Enum.Enum Network.MQTT.Types.SessionReuse
-instance GHC.Enum.Bounded Network.MQTT.Types.SessionReuse
-instance GHC.Classes.Eq Network.MQTT.Types.SessionReuse
-instance GHC.Show.Show Network.MQTT.Types.SessionReuse
-instance GHC.Enum.Enum Network.MQTT.Types.ConnACKRC
-instance GHC.Enum.Bounded Network.MQTT.Types.ConnACKRC
-instance GHC.Show.Show Network.MQTT.Types.ConnACKRC
-instance GHC.Classes.Eq Network.MQTT.Types.ConnACKRC
-instance GHC.Show.Show Network.MQTT.Types.ConnectRequest
-instance GHC.Classes.Eq Network.MQTT.Types.ConnectRequest
-instance GHC.Show.Show Network.MQTT.Types.LastWill
-instance GHC.Classes.Eq Network.MQTT.Types.LastWill
-instance GHC.Show.Show Network.MQTT.Types.ProtocolLevel
-instance GHC.Classes.Eq Network.MQTT.Types.ProtocolLevel
-instance GHC.Enum.Enum Network.MQTT.Types.ProtocolLevel
-instance GHC.Enum.Bounded Network.MQTT.Types.ProtocolLevel
-instance GHC.Classes.Eq Network.MQTT.Types.Property
-instance GHC.Show.Show Network.MQTT.Types.Property
 instance GHC.Classes.Ord Network.MQTT.Types.QoS
 instance GHC.Show.Show Network.MQTT.Types.QoS
 instance GHC.Classes.Eq Network.MQTT.Types.QoS
 instance GHC.Enum.Enum Network.MQTT.Types.QoS
 instance GHC.Enum.Bounded Network.MQTT.Types.QoS
+instance GHC.Classes.Eq Network.MQTT.Types.Property
+instance GHC.Show.Show Network.MQTT.Types.Property
+instance GHC.Show.Show Network.MQTT.Types.ProtocolLevel
+instance GHC.Classes.Eq Network.MQTT.Types.ProtocolLevel
+instance GHC.Enum.Enum Network.MQTT.Types.ProtocolLevel
+instance GHC.Enum.Bounded Network.MQTT.Types.ProtocolLevel
+instance GHC.Show.Show Network.MQTT.Types.LastWill
+instance GHC.Classes.Eq Network.MQTT.Types.LastWill
+instance GHC.Show.Show Network.MQTT.Types.ConnectRequest
+instance GHC.Classes.Eq Network.MQTT.Types.ConnectRequest
+instance GHC.Enum.Enum Network.MQTT.Types.ConnACKRC
+instance GHC.Enum.Bounded Network.MQTT.Types.ConnACKRC
+instance GHC.Show.Show Network.MQTT.Types.ConnACKRC
+instance GHC.Classes.Eq Network.MQTT.Types.ConnACKRC
+instance GHC.Enum.Enum Network.MQTT.Types.SessionReuse
+instance GHC.Enum.Bounded Network.MQTT.Types.SessionReuse
+instance GHC.Classes.Eq Network.MQTT.Types.SessionReuse
+instance GHC.Show.Show Network.MQTT.Types.SessionReuse
+instance GHC.Show.Show Network.MQTT.Types.ConnACKFlags
+instance GHC.Classes.Eq Network.MQTT.Types.ConnACKFlags
+instance GHC.Show.Show Network.MQTT.Types.PublishRequest
+instance GHC.Classes.Eq Network.MQTT.Types.PublishRequest
+instance GHC.Enum.Enum Network.MQTT.Types.RetainHandling
+instance GHC.Enum.Bounded Network.MQTT.Types.RetainHandling
+instance GHC.Show.Show Network.MQTT.Types.RetainHandling
+instance GHC.Classes.Eq Network.MQTT.Types.RetainHandling
+instance GHC.Show.Show Network.MQTT.Types.SubOptions
+instance GHC.Classes.Eq Network.MQTT.Types.SubOptions
+instance GHC.Show.Show Network.MQTT.Types.SubscribeRequest
+instance GHC.Classes.Eq Network.MQTT.Types.SubscribeRequest
+instance GHC.Show.Show Network.MQTT.Types.PubACK
+instance GHC.Classes.Eq Network.MQTT.Types.PubACK
+instance GHC.Show.Show Network.MQTT.Types.PubREC
+instance GHC.Classes.Eq Network.MQTT.Types.PubREC
+instance GHC.Show.Show Network.MQTT.Types.PubREL
+instance GHC.Classes.Eq Network.MQTT.Types.PubREL
+instance GHC.Show.Show Network.MQTT.Types.PubCOMP
+instance GHC.Classes.Eq Network.MQTT.Types.PubCOMP
+instance GHC.Enum.Enum Network.MQTT.Types.SubErr
+instance GHC.Enum.Bounded Network.MQTT.Types.SubErr
+instance GHC.Show.Show Network.MQTT.Types.SubErr
+instance GHC.Classes.Eq Network.MQTT.Types.SubErr
+instance GHC.Show.Show Network.MQTT.Types.SubscribeResponse
+instance GHC.Classes.Eq Network.MQTT.Types.SubscribeResponse
+instance GHC.Show.Show Network.MQTT.Types.UnsubscribeRequest
+instance GHC.Classes.Eq Network.MQTT.Types.UnsubscribeRequest
+instance GHC.Enum.Enum Network.MQTT.Types.UnsubStatus
+instance GHC.Enum.Bounded Network.MQTT.Types.UnsubStatus
+instance GHC.Classes.Eq Network.MQTT.Types.UnsubStatus
+instance GHC.Show.Show Network.MQTT.Types.UnsubStatus
+instance GHC.Show.Show Network.MQTT.Types.UnsubscribeResponse
+instance GHC.Classes.Eq Network.MQTT.Types.UnsubscribeResponse
+instance GHC.Show.Show Network.MQTT.Types.AuthRequest
+instance GHC.Classes.Eq Network.MQTT.Types.AuthRequest
+instance GHC.Enum.Enum Network.MQTT.Types.DiscoReason
+instance GHC.Enum.Bounded Network.MQTT.Types.DiscoReason
+instance GHC.Classes.Eq Network.MQTT.Types.DiscoReason
+instance GHC.Show.Show Network.MQTT.Types.DiscoReason
+instance GHC.Show.Show Network.MQTT.Types.DisconnectRequest
+instance GHC.Classes.Eq Network.MQTT.Types.DisconnectRequest
+instance GHC.Show.Show Network.MQTT.Types.MQTTPkt
+instance GHC.Classes.Eq Network.MQTT.Types.MQTTPkt
 instance Network.MQTT.Types.ByteMe Network.MQTT.Types.MQTTPkt
 instance Network.MQTT.Types.ByteMe Network.MQTT.Types.DisconnectRequest
 instance Network.MQTT.Types.ByteSize Network.MQTT.Types.DiscoReason
@@ -368,7 +400,7 @@ module Network.MQTT.Client
 
 -- | Configuration for setting up an MQTT client.
 data MQTTConfig
-MQTTConfig :: Bool -> Maybe LastWill -> MessageCallback -> ProtocolLevel -> [Property] -> String -> Int -> String -> Maybe String -> Maybe String -> Int -> TLSSettings -> MQTTConfig
+MQTTConfig :: Bool -> Maybe LastWill -> MessageCallback -> ProtocolLevel -> [Property] -> String -> Int -> String -> Maybe String -> Maybe String -> Int -> TLSSettings -> Int -> Int -> MQTTConfig
 
 -- | False if a session should be reused.
 [_cleanSession] :: MQTTConfig -> Bool
@@ -406,6 +438,14 @@ MQTTConfig :: Bool -> Maybe LastWill -> MessageCallback -> ProtocolLevel -> [Pro
 -- | TLS Settings for secure connections
 [_tlsSettings] :: MQTTConfig -> TLSSettings
 
+-- | Time in seconds between pings
+[_pingPeriod] :: MQTTConfig -> Int
+
+-- | Time in seconds for which there must be no incoming packets before the
+--   broker is considered dead. Should be more than the ping period plus
+--   the maximum expected ping round trip time.
+[_pingPatience] :: MQTTConfig -> Int
+
 -- | The MQTT client.
 --   
 --   See <a>connectURI</a> for the most straightforward example.
@@ -418,10 +458,10 @@ QoS1 :: QoS
 QoS2 :: QoS
 
 -- | An MQTT topic.
-type Topic = Text
+data Topic
 
--- | A default <a>MQTTConfig</a>. A <a>_connID</a> <i>may</i> be required
---   depending on your broker (or if you just want an
+-- | A default <a>MQTTConfig</a>. A <a>MQTTConfig</a> <i>may</i> be
+--   required depending on your broker (or if you just want an
 --   identifiable/resumable connection). In MQTTv5, an empty connection ID
 --   may be sent and the server may assign an identifier for you and return
 --   it in the <a>PropAssignedClientIdentifier</a> <a>Property</a>.
@@ -503,8 +543,28 @@ subOptions :: SubOptions
 -- | Callback invoked on each incoming subscribed message.
 data MessageCallback
 NoCallback :: MessageCallback
+
+-- | Callbacks will be invoked asynchronously, ordering is likely
+--   preserved, but not guaranteed. In high throughput scenarios, slow
+--   callbacks may result in a high number of Haskell threads, potentially
+--   bringing down the entire application when running out of memory.
+--   Typically faster than <a>OrderedCallback</a>.
 SimpleCallback :: (MQTTClient -> Topic -> ByteString -> [Property] -> IO ()) -> MessageCallback
+
+-- | Callbacks are guaranteed to be invoked in the same order messages are
+--   received. In high throughput scenarios, slow callbacks may cause the
+--   underlying TCP connection to block, potentially being terminated by
+--   the broker. Typically slower than <a>SimpleCallback</a>.
+OrderedCallback :: (MQTTClient -> Topic -> ByteString -> [Property] -> IO ()) -> MessageCallback
+
+-- | A LowLevelCallback receives the client and the entire publish request,
+--   providing access to all of the fields of the request. This is slightly
+--   harder to use than SimpleCallback for common cases, but there are
+--   cases where you need all the things.
 LowLevelCallback :: (MQTTClient -> PublishRequest -> IO ()) -> MessageCallback
+
+-- | A low level callback that is ordered.
+OrderedLowLevelCallback :: (MQTTClient -> PublishRequest -> IO ()) -> MessageCallback
 
 -- | Wait for a client to terminate its connection. An exception is thrown
 --   if the client didn't terminate expectedly.
@@ -610,15 +670,15 @@ registerCorrelated :: MQTTClient -> ByteString -> MessageCallback -> STM ()
 -- | Unregister a callback handler for the given correlated data
 --   identifier.
 unregisterCorrelated :: MQTTClient -> ByteString -> STM ()
-instance GHC.Show.Show Network.MQTT.Client.MQTTException
-instance GHC.Classes.Eq Network.MQTT.Client.MQTTException
+instance GHC.Show.Show Network.MQTT.Client.ConnState
+instance GHC.Classes.Eq Network.MQTT.Client.ConnState
 instance GHC.Enum.Bounded Network.MQTT.Client.DispatchType
 instance GHC.Enum.Enum Network.MQTT.Client.DispatchType
 instance GHC.Classes.Ord Network.MQTT.Client.DispatchType
 instance GHC.Show.Show Network.MQTT.Client.DispatchType
 instance GHC.Classes.Eq Network.MQTT.Client.DispatchType
-instance GHC.Show.Show Network.MQTT.Client.ConnState
-instance GHC.Classes.Eq Network.MQTT.Client.ConnState
+instance GHC.Show.Show Network.MQTT.Client.MQTTException
+instance GHC.Classes.Eq Network.MQTT.Client.MQTTException
 instance GHC.Exception.Type.Exception Network.MQTT.Client.MQTTException
 
 
@@ -629,12 +689,6 @@ module Network.MQTT.Arbitrary
 newtype SizeT
 SizeT :: Int -> SizeT
 
--- | An arbitrary topic.
-data ATopic
-
--- | Retrieve the Topic from ATopic
-unTopic :: ATopic -> Topic
-
 -- | An arbitrary Topic and an arbitrary Filter that should match it.
 newtype MatchingTopic
 MatchingTopic :: (Topic, [Filter]) -> MatchingTopic
@@ -643,9 +697,14 @@ MatchingTopic :: (Topic, [Filter]) -> MatchingTopic
 --   of a given length from the given alphabet.
 arbitraryTopicSegment :: [Char] -> Int -> Gen Text
 
--- | Generate an arbitrary ATopic from the given alphabet with lengths of
+-- | Generate an arbitrary Topic from the given alphabet with lengths of
 --   segments and the segment count specified by the given ranges.
-arbitraryTopic :: [Char] -> (Int, Int) -> (Int, Int) -> Gen ATopic
+arbitraryTopic :: [Char] -> (Int, Int) -> (Int, Int) -> Gen Topic
+
+-- | Generate an arbitrary Filter from the given alphabet with lengths of
+--   segments and the segment count specified by the given ranges. Segments
+--   may contain wildcards.
+arbitraryFilter :: [Char] -> (Int, Int) -> (Int, Int) -> Gen Filter
 
 -- | Generate an arbitrary topic similarly to arbitraryTopic as well as
 --   some arbitrary filters that should match that topic.
@@ -653,14 +712,11 @@ arbitraryMatchingTopic :: [Char] -> (Int, Int) -> (Int, Int) -> (Int, Int) -> Ge
 
 -- | v311mask strips all the v5 specific bits from an MQTTPkt.
 v311mask :: MQTTPkt -> MQTTPkt
-instance GHC.Show.Show Network.MQTT.Arbitrary.MatchingTopic
-instance GHC.Classes.Eq Network.MQTT.Arbitrary.MatchingTopic
-instance GHC.Classes.Eq Network.MQTT.Arbitrary.ATopic
-instance GHC.Show.Show Network.MQTT.Arbitrary.ATopic
 instance GHC.Show.Show Network.MQTT.Arbitrary.SizeT
 instance GHC.Classes.Eq Network.MQTT.Arbitrary.SizeT
+instance GHC.Show.Show Network.MQTT.Arbitrary.MatchingTopic
+instance GHC.Classes.Eq Network.MQTT.Arbitrary.MatchingTopic
 instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Arbitrary.MatchingTopic
-instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Arbitrary.ATopic
 instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Arbitrary.SizeT
 instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Types.LastWill
 instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Types.ProtocolLevel
@@ -686,3 +742,5 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Types.ConnACKRC
 instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Types.DiscoReason
 instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Types.DisconnectRequest
 instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Types.MQTTPkt
+instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Topic.Topic
+instance Test.QuickCheck.Arbitrary.Arbitrary Network.MQTT.Topic.Filter

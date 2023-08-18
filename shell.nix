@@ -9,7 +9,6 @@ mkShell {
     hlint
     ghcid
     haskell-language-server
-    niv
   ];
 
   shellHook = ''

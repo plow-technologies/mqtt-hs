@@ -39,6 +39,7 @@ dependencies:
 - monad-loops          >= 0.4.3
 - time                 >= 1.9
 - data-default-class   >= 0.1.2
+- connection
 - hashable
 
 library:
